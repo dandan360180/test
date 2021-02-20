@@ -6,7 +6,7 @@ The main files present here are:
 - **project.html:** This is the HTML ouptput of the R markdown.
 - **app.R:** This is a Shiny App from which you can explore the data.
 
-All the analysis is extensively described in the `project.html` file so feel free to go through it.
+All the analysis is extensively described in the `AirBnB.html` file so feel free to go through it.
 
 This project has been ran using the following packages and R lirbairies.
 ```
