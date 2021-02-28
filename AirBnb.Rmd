@@ -1,5 +1,5 @@
 ---
-title: "Paris AirBnB Data Analysis"
+title: "Paris AirBnB Data Analysis 2009-2016"
 output: html_document
 author: Aminu Habib Abiola
 ---
@@ -11,7 +11,7 @@ knitr::opts_chunk$set(echo = TRUE)
 # Introduction and Objectives
 Every night, hundreds of thousands of tourists prefer to pay and stay in the property of a stranger, found online on Airbnb webstie instead of booking a traditional tourism accommodation such as a hotel. Since Airbnb 2008, proposed an online platform where people can rent mostly for tourism different type of properties: rooms, appartments, houses and sometimes more esoteric places. Over the past several years Airbnb has rapidly and massively grown to the point that today anyone can rent and find a spot virtually in any country or city of the world.
 
-In this report we focus on Paris, capital of France, and will try to decipher some general tendencies regarding the prices proposed by parisian hosts. This analysis will be performed in the frame of four major objectives. Firstly we will try to uncover the features that impact on the price of property with a specific focus on appartment. Secondly we will focus more on parisian hosts and try to determine how many appartments a parisian commonly propose for renting. Thirdly we will take a geographical approach in trying to assess whether locations of the properties impact on prices. Finally we study and quantify the number of visits in the capital longitudinally based on the number of AirBnB renting.
+In this report we focus on Paris, capital of France, and will try to decipher some general tendencies regarding the prices proposed by Parisian hosts. This analysis will be performed in the frame of four major objectives. Firstly we will try to uncover the features that impact on the price of property with a specific focus on appartment. Secondly we will focus more on parisian hosts and try to determine how many appartments a parisian commonly propose for renting. Thirdly we will take a geographical approach in trying to assess whether locations of the properties impact on prices. Finally we study and quantify the number of visits in the capital longitudinally based on the number of AirBnB renting.
 
 
 # Methods
@@ -19,7 +19,7 @@ In this report we focus on Paris, capital of France, and will try to decipher so
 The main packages imported and used for this data analysis are the following:
 
 ### Load the library
-```{r package,eval = FALSE}
+```{r package, eval=FALSE, include=FALSE}
 library(tidyr)
 library(dplyr)
 library(stringr)
@@ -36,29 +36,30 @@ library(purrr)
 library(broom)
 library(rgdal)
 library(leaflet)
+library(shinythemes)
 ```
 
 ### Loading of the data set
 
-```{r load_data_set}
+```{r load_data_set, eval=FALSE, include=FALSE}
 load("/Users/macbookproret.t.b/Downloads/AirBnB.Rdata")
 ls()
 ```
 
 The **"AirBnB"** data set comes as two different tables named **L** and **R**.
 
-```{r}
+```{r echo=TRUE, paged.print=TRUE}
 L
 ```
 
-```{r}
+```{r echo=TRUE, paged.print=TRUE}
 R
 ```
 
 
 We can see that the table L is highly complex with notably 95 variables of different types. Some work regarding cleaning will be needed as we will see later on. The second table R is less complex and contained only two variables. To make the naming more appropriate we are going to save both tables into variables airbnb_data and supplementary_data respectively.
 
-```{r data_type}
+```{r data_type, message=FALSE}
 airbnb_data <- L
 supplementary_data <- R
 ```
@@ -66,7 +67,7 @@ supplementary_data <- R
 # Data Types manipulation
 Our data set contains several variables of different types. To manipulate some variables notably numeric ones, we need to ensure that they are loaded with the appropriate data type. A good example of this is the values contained in the price column. The function *Skim* helps us to describe the available data type.
 
-```{r skim_function, eval = FALSE}
+```{r skim_function, eval=, paged.print=TRUE}
 skim(airbnb_data)
 ```
 
@@ -137,13 +138,13 @@ As a customer the first parameter to watch when renting a place is the price. It
 ## The Parisian offer of AirBnB 
 Before analysing prices, it would be useful to reduce the size of our data. We could select relevant features and gather all of them in a new data table. When renting a place as a customer, there are some obvious aspects that we look at first: type of room or property, the number of rooms and bathrooms are the most obvious.
 
-```{r}
+```{r paged.print=TRUE}
 colnames(airbnb_data)
 ```
 
 To fulfill our objectives we selected the following variables: property_type, room_type, bathrooms, bedrooms, square_feet, neighbourhood_cleansed, id, host_id, price and save the resulting table into a new variable named features_and_price.
 
-```{r}
+```{r echo=TRUE}
 features_and_price <- airbnb_data %>%
   select(property_type,
          room_type,
@@ -160,25 +161,25 @@ features_and_price
 We shall investigate more closely the values present in the room_type and property_type columns.
 
 
-```{r}
+```{r echo=TRUE}
 features_and_price %>%
   distinct(room_type)
 ```
-```{r}
+```{r echo=TRUE}
 features_and_price %>%
   distinct(property_type)
 ```
 
 We can see that parisian hosts propose three types of rooms: Entire home/apt, Private room and Shared room. Property types are more diverse. We have some surprising propositions there as cabin, cave, chalet, earth house or igloo. A quick look at the count of these types also revealed that they represent very marginal proposition:
 
-```{r}
+```{r echo=TRUE, paged.print=TRUE}
 features_and_price %>%
   count(property_type)
 ```
 
 There is also a other tag here where all these unexpected propositions could have been piled in. Nevetheless other would be to vague to draw any conclusion from an analysis. Consequenlty we are going to keep only the following relevant and explicit property types to perform our analysis: Apartment, Bed & Breakfast, Boat, Condominium, Dorm, House, Loft, Townhouse, Villa.
 
-```{r}
+```{r include=FALSE}
 list_property_types <- c("Apartment",
                          "Bed & Breakfast",
                          "Boat",
@@ -196,7 +197,7 @@ features_and_price <- features_and_price %>%
 
 Quantifying the number of rooms by subtypes revealed that the massive majority of available rooms were in the variable Entire home/apt (Figure 1B). Then comes the Private room and the Shared room. The picture is the same if we look now by property types. (Figure 1A). Indeed except for Bed & Breakfast which offers essentially private rooms or Dorm where you can mostly find shared rooms the other types of proprety majoritarely consist on renting the whole place (Figure 1A).
 
-```{r}
+```{r echo=TRUE}
 room_type_count <- (ggplot(features_and_price, 
                            aes(x = room_type))
                     +  geom_bar(stat = "count",
@@ -238,7 +239,7 @@ ggarrange(property_types,
 
 We previously found that the Parisian spectrum of offers was quite focused on entire appartment to rent. This sounds a bit obvious as from an urbanistic perspective you will find much more appartments than houses in Paris. Next we sought to investigate whether the different properties were proposed or not at similar prices on AirBnB platform. In order to do that we first need to get a closed look at the price variable present in our data set. As stated before its data type is factor. This might be limiting if we want to do some calculations or plot its distribution.
 
-```{r}
+```{r echo=TRUE}
 (ggplot(features_and_price,
         aes(x = price))
   + geom_histogram(bins = 80,
@@ -255,14 +256,14 @@ We previously found that the Parisian spectrum of offers was quite focused on en
 
 As shown in Figure 2, the distribution of the price variable is strongly skewed. More stinkingly we can see that the range of values is quite large.
 
-```{r}
+```{r echo=TRUE}
 summary(features_and_price$price)
 ```
 
 A quick computation using the R summary() function – as done above – showed that the minimum price is $0 and the maximum is $6081. Although human kindness is limitless, free rent do not exist in AirBnB. Additionnaly it sounds unreasonable to spend $6081 one night for renting a property. At the time of writing, a quick request for renting in Paris using AirBnB website revealed that the range of price goes from around $10 to approximatively $1000. Consequently we will use these values as range for the variable price.
 
 ![airbnb](AirBnB.png)
-```{r}
+```{r echo=TRUE}
 features_and_price <- features_and_price %>%
 filter(features_and_price$price >= 9 &
        features_and_price$price <= 1000)
@@ -281,13 +282,13 @@ filter(features_and_price$price >= 9 &
 ```
 *Figure 3: Updated distribution of prices in Paris.*
 
-```{r}
+```{r echo=TRUE}
 summary(features_and_price$price)
 ```
 
 After cleaning we can see that median of prices is still $75 with a minimum at $9 and and a maximum at $997. The distribution is not gaussian but remains less skewed (Figure 3). Next we will investigate if prices are different between property types proposed in Paris by AirBnB hosts.
 
-```{r}
+```{r echo=TRUE}
 price_by_property <- (ggplot(features_and_price,
                              aes(x = price))
                       +  geom_histogram(bins = 20,
@@ -324,7 +325,7 @@ Looking at the distribution of price data inside each kind of property (Figure 4
 ## Number of bedrooms and the location significantly impacts on the prices of Parisian appartments avalaible in AirBnB
 In our next part of our analysis we are going to focus on appartments and try to decipher which feature – among the following: bathrooms, bedrooms , accommodates and neighbourhood_cleansed – impacts on nightly prices.
 
-```{r}
+```{r echo=TRUE}
 apt_features_and_price <- features_and_price %>%
   filter(property_type == "Apartment")
 ```
@@ -334,7 +335,7 @@ The variable bathroom has surprising values. Actually this comes from real estat
 
 As shown in Figure 5A & 5C the prices and number of bathrooms concomitantly increase up to 3 bathrooms. At 4 and 5 bathrooms prices start to have a very inconsistent distribution. Above it, values are even more unexpected. Indeed for 6, 7 and 8 bathrooms prices are very low. The most plausible explanation to this could be that renting offers with number of bathrooms superior to 5 would in reality consist of private or shared rooms in big appartments. Let’s check this.
 
-```{r}
+```{r echo=TRUE}
 apt_features_and_price %>%
   filter(bathrooms > 5) %>%
   count(room_type)
@@ -348,7 +349,7 @@ As we can see here the majority of renting offers in appartments with a number o
 
 In a last part we wanted to check how many appartment one host usually proposes. In other words we want to check if the market here is balanced or concentrated into the hands of a few landlords. To do this we (i) count the number of occurence of host_id in our table, (ii) mutate our table to create a categorical variable to group counts (1 appartment, between 2 and 5, more than 5) and (iii) we count the occurence of our groups. As shown in Figure 6F the massive majority of host has only one appartment to rent on AirBnB. We do have a substantial amount of landlords who rent between 2 and 5 appartment. Above numbers are quickly decreasing to represent only a very tiny proportion of the whole.
 
-```{r}
+```{r echo=TRUE}
 count_by_host_1 <- apt_features_and_price %>%
   group_by(host_id) %>%
   summarise(number_apt_by_host = n()) %>%
@@ -366,7 +367,7 @@ count_by_host_2 <- count_by_host_1 %>%
 ```
 
 
-```{r}
+```{r echo=TRUE}
 apt_features_and_price["bathrooms"] <- apt_features_and_price["bathrooms"] %>%
   map(., floor)
 
@@ -463,7 +464,7 @@ ggarrange(bath_distr,
 As expected, our analysis demonstrates that the price of an appartment also depends on its location (Figure 6A). Indeed when looking at the most famous parisian quarters (Elysee, Palais-Bourbon Louvre or Luxembourg) we can see that the median of their prices is higher than others (Figure 6A, Figure 7). This can be explained by the fact that most of the hot spots are located in these neighbourhoods. Additionnaly these neighbourhoods are historically the most expensive ones in the capital. Consequently it makes sense that renting prices on AirBnB are higher in these locations (Figure 6A, 7). Finally we sought to investigate the visit rates inferred from number of rentings longitudinally in each parisian quarter from 2009 to end of 2016 (Figure 6B). Based on renting rate, we can see a longitudinal increase of visits in all neighbourhoods along time. This increase is easely explained by the growth of AirBnB over time and the importance that this company took in the renting business over this period of time. Nevetheless, we can see different patterns between the each neighbourhoods. Indeed we can see that the neighbourhoods with the lowest median of prices are often the most “visited” ones (Figure 6B, Figure 7). This makes sense especially for tourism and especially for usual AirBnB customers. They usually rent a place to get a feet on the ground as they will spend most of their time visiting the city. Given the excellent common transports network in Paris, it might be interesting to find a place a bit more outside from the hotspots and cheaper but still be able to reach quickly downtown thanks to common transportation.
 
 
-```{r}
+```{r echo=TRUE}
 location_box <- (ggplot(apt_features_and_price)
                  +  geom_boxplot(aes(x = "",
                                      y = price),
@@ -517,7 +518,7 @@ ggarrange(location_box,
 
 # Renting price per city quarter ("arrondissements")
 
-```{r}
+```{r echo=TRUE}
 
 map <- readOGR("arrondissements.geojson")
 
@@ -525,7 +526,7 @@ map <- readOGR("arrondissements.geojson")
 
 
 #Generating the map layout
-```{r}
+```{r echo=TRUE}
 paris <- leaflet(map) %>%
   addProviderTiles(providers$Stamen.TonerLite)
 
@@ -570,7 +571,7 @@ paris %>%
 
 The exploratory analysis above highlights some interesting trends and patterns, as well as some factors that can increase an Airbnb house’s price as the type of property, its number of room and its locations. Some more works could have been done notably by cleaning and tackling the amenities variable. Typed as a factor in our data set it actually lists a lot of extra features related to furnitures, presence of balcony and other extra services proposed by the host that could eventually influence the price. This would imply extra text / strings manipulation to and carefull cleaning to actually extract some insights from. Additonnaly we provided a Shiny applications which provide a quick and easy way go throught the data and its analysis.
 
-```{r}
+```{r echo=TRUE}
 sessionInfo()
 ```
 

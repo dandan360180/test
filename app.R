@@ -5,6 +5,7 @@ library(ggplot2)
 library(ggthemes)
 library(rgdal)
 library(leaflet)
+library(shinythemes)
 
 ### Processed Data for the Map
 map <- readOGR("arrondissements.geojson")
@@ -17,7 +18,7 @@ labels <- sprintf("<strong>%s</strong><br/> Median Price: $%g",
 load("/Users/macbookproret.t.b/Desktop/R project/apt_data.Rdata")
 load("/Users/macbookproret.t.b/Desktop/R project/airbnb_time_serie.Rdata")
 load("/Users/macbookproret.t.b/Desktop/R project/num_apt_by_host.Rdata")
-load("/Users/macbookproret.t.b/Desktop/R project/AirBnB.Rdata")
+
 
 ### Preparing the Data as needed
 
@@ -38,13 +39,19 @@ ids <- apt_by_host %>%
     select(host_id)
 
 
-### App
+
+
+### Application Component
 
 ### Ui logic
-ui <- navbarPage("Paris AirBnB 2009-2016",
+ui <- navbarPage("Paris AirBnB 2009-2016", theme = shinytheme("darkly"),
                  
                  tabPanel("Map and Analysis of AirBnB Data in Paris",
-                          leafletOutput("paris", width = "100%", "900px"),
+                          leafletOutput("paris", width = "100%", "900px" ),
+                          
+                          
+                          
+                          
                           
                           # Floating panel
                           absolutePanel(
@@ -57,6 +64,7 @@ ui <- navbarPage("Paris AirBnB 2009-2016",
                               bottom    = "auto",
                               width     = "400",
                               height    = "auto",
+                              
                               selectInput("arrond",
                                           "Neighbourhood:",
                                           arrond_input,
@@ -82,20 +90,20 @@ ui <- navbarPage("Paris AirBnB 2009-2016",
 
 
 
-### Server Logic
+### Server Logic Component
 server <- function(input, output, session) {
     # Create the map
     output$paris <- renderLeaflet({
         leaflet(map) %>%
             addProviderTiles(providers$Stamen.TonerLite) %>%
             addPolygons(dashArray = "2",
-                        color = "red",
+                        color = "black",
                         weight = 2,
                         smoothFactor = 0.2,
                         fillOpacity = 0.5,
                         fillColor = ~pal(median),
                         highlight = highlightOptions(weight = 5,
-                                                     color = "green",
+                                                     color = "white",
                                                      dashArray = "",
                                                      fillOpacity = 0.6,
                                                      bringToFront = TRUE),
@@ -135,9 +143,9 @@ server <- function(input, output, session) {
          + scale_fill_manual(values = c("#00DD00", "#FA648C"))
          + labs(x = "Price",
                 y = "Density\n",
-                title = "Distribution by neighbourhoods")
+                title = "Distribution by arrondissements")
          + theme_tufte(base_size = 14,
-                      # base_family = "helvetica",
+            
                        ticks = TRUE)
          + theme(axis.text.x = element_text(size = 14),
                  axis.text.y = element_text(size = 14),
@@ -157,11 +165,11 @@ server <- function(input, output, session) {
          + geom_line(size = 0.5, colour = "#56DDFF")
          + scale_x_date(date_labels = "%Y")
          + labs(x = "Year",
-                y = "# Rented Appartment\n",
-                title = "Time-Series Analysis by neighbourhoods")
+                y = "# Appartment Rented\n",
+                title = "Time-Series Analysis by arrondissements")
          + stat_smooth(color = "#FF5AAC", method = "loess")
          + theme_tufte(base_size = 14,
-                       #base_family = "helvetica",
+                       
                        ticks = TRUE)
          + theme(axis.text.x = element_text(size = 14),
                  axis.text.y = element_text(size = 14),
@@ -178,18 +186,18 @@ server <- function(input, output, session) {
     output$apt_by_host <- renderPlot({
         (ggplot(selected_host(), aes(x = "", y = n))
          + geom_col(width = 0.1,
-                    colour = "white",
+                    colour = "black",
                     fill = "#BE80FF")
          + geom_text(aes(label = n),
                      position = position_dodge(0.9),
                      vjust = 2.5,
                      size = 4,
-                     colour = "white")
+                     colour = "black")
          + labs(x = "",
-                y = "# of Appartment\n",
-                title = "Number of appartments by host")
+                y = "Number of Appartment\n",
+                title = "Number of appartments per host")
          + theme_tufte(base_size = 14,
-                      # base_family = "helvetica",
+                    
                        ticks = TRUE)
          + theme(axis.text.x = element_text(size = 14),
                  axis.text.y = element_text(size = 14),
@@ -200,4 +208,4 @@ server <- function(input, output, session) {
 
 
 shinyApp(ui = ui, server = server)
-#shinyApp(ui = ui, server = server)
+
