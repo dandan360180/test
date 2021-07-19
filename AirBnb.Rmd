@@ -1,7 +1,7 @@
 ---
-title: "Paris AirBnB Data Analysis 2009-2016"
+title: "Paris AirBnB Data Analysis 2009-16"
 output: html_document
-author: Aminu Habib Abiola
+author: Madhurananadn
 ---
 
 ```{r setup, include=FALSE}
